@@ -1,0 +1,87 @@
+#!/bin/sh
+
+warn ()
+{
+	printf '%s\n' "$*" >&2
+}
+
+colourise ()
+{
+	case $1 in
+	k)
+		# black
+		set -- '30' ;;
+	K)
+		# bold black
+		set -- '1;30' ;;
+	r)
+		# red
+		set -- '31' ;;
+	R)
+		# bold red
+		set -- '1;31' ;;
+	g)
+		# green
+		set -- '32' ;;
+	G)
+		# bold green
+		set -- '1;32' ;;
+	y)
+		# yellow
+		set -- '33' ;;
+	Y)
+		# bold yellow
+		set -- '1;33' ;;
+	b)
+		# blue
+		set -- '34' ;;
+	B)
+		# bold blue
+		set -- '1;34' ;;
+	m)
+		# magenta
+		set -- '35' ;;
+	M)
+		# bold magenta
+		set -- '1;35' ;;
+	c)
+		# cyan
+		set -- '36' ;;
+	C)
+		# bold cyan
+		set -- '1;36' ;;
+	w)
+		# white
+		set -- '37' ;;
+	W)
+		# bold white
+		set -- '1;37' ;;
+	*)
+		warn "unknown color code: $1"
+		exit 1
+	esac
+	while IFS= read -r line
+	do
+		printf '\033[%sm%s\033[m\n' "$1" "$line"
+	done
+}
+
+main ()
+{
+	if ! test -t 0
+	then
+		colourise "$1"
+		return
+	fi
+	for file in "$@"
+	do
+		if ! test -f "$file"
+		then
+			warn "not found: $file"
+			continue
+		fi
+		colourise "$1" <"$file"
+	done
+}
+
+main "$@"

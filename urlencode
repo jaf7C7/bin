@@ -1,0 +1,64 @@
+#!/bin/sh
+#
+# `urlencode`: Percent-encode a file or string according to RFC3986.
+
+
+LC_ALL=C
+export LC_ALL
+
+
+to_hex ()
+{
+	set -- $(printf '%s' "$1" | od -t x1)
+	printf '%s' "$2"
+}
+
+
+encode_string ()
+{
+	while test -n "$1"
+	do
+		char="$(printf '%.1s' "$1")"
+		set -- "${1#$char}"
+		case $char in
+		[[:alnum:]._~-]) ;;
+		*)
+			char="%$(to_hex "$char")"
+		esac
+		printf '%s' "$char"
+	done
+}
+
+
+encode_stream ()
+{
+	while IFS= read -r line || { test -n "$line" && EOF='true'; }
+	do
+		encode_string "$line"
+		test "$EOF" = 'true' || printf '%%0a'
+	done
+}
+
+
+main ()
+{
+	trap 'test -t 1 && printf \\n' EXIT
+	if test $# -eq 0
+	then
+		encode_stream
+		return
+	fi
+	while test $# -gt 0
+	do
+		if test -f "$1"
+		then
+			encode_stream <"$1"
+		else
+			encode_string "$1"
+		fi
+		shift
+	done
+}
+
+
+main "$@"

@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# todo: Display tasks in project files
+
+main ()
+{
+	if [ $# -eq 0 ]; then
+		if [ ! -f TODO.md ]; then
+			! echo 'nothing to do here' >&2
+		else
+			"${PAGER:-more}" TODO.md
+		fi
+		return
+	fi
+	# Print all 'TODO' comments in each file
+	for arg; do
+		if [ ! -e "$arg" ]; then
+			echo "\`$arg': no such file or directory" >&2
+			return 1
+		fi
+		grep -n TODO "$arg" --color=always | sed 's/[[:space:]]*#//'
+	done
+}
+
+main "$@"

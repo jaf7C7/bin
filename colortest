@@ -1,0 +1,50 @@
+#!/bin/sh
+#
+# Print out all 16 terminal colors
+
+# Usage: print_color [-b|--bold] <color_number> [<text>]
+
+die() {
+    echo "${0##*/}: $*" >&2
+    exit 1
+}
+
+print_color() {
+    while test $# -gt 0; do
+        case $1 in
+            -b|--bold)
+                bold='1;'
+                shift
+                ;;
+            *[![:digit:]]*)
+                test -n "$color" || die "\`$1': unrecognised argument"
+                text="$1"
+                shift
+                ;;
+            *)
+                color="${1}"
+                shift
+                ;;
+        esac
+    done
+
+    set_color="\033[${bold:-}3${color}m"
+    clear_color="\033[0m"
+
+    if test -z "$text"; then
+        text='!"#$%&'\''()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~'
+    fi
+
+    printf '%b%b%b\n' "$set_color" "$text" "$clear_color"
+    unset bold text color set_color clear_color
+}
+
+main() {
+    for i in $(seq 7); do
+        print_color "$i"
+        print_color --bold "$i"
+    done
+}
+
+
+main "$@"
