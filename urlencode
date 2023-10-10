@@ -20,7 +20,7 @@ encode_string ()
 	while test -n "$1"
 	do
 		char="$(printf '%.1s' "$1")"
-		set -- "${1#$char}"
+		set -- "${1#"$char"}"
 		case $char in
 		[[:alnum:]._~-]) ;;
 		*)
