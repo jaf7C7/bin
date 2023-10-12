@@ -1,0 +1,92 @@
+#!/bin/sh
+#
+# `urldecode`: Percent-dencode a file or string according to RFC3986.
+
+
+##############
+# ascii:   a #
+# hex:    61 #
+# octal: 141 #
+##############
+
+
+LC_ALL=C
+export LC_ALL
+
+
+uppercase ()
+{
+	printf '%s\n' "$1" | tr '[[:lower:]]' '[[:upper:]]'
+}
+
+
+from_hex ()
+{
+	# `bc` interprets lower-case letters as variable names
+	printf '%b\n' "\\$(echo "obase=8;ibase=16;$(uppercase "$1")" | bc)"
+}
+
+
+decode_string ()
+{
+	while test -n "$1"
+	do
+		char="${1%"${1#?}"}"
+		set -- "${1#"$char"}"
+		if test "$char" = '%'
+		then
+			if test "$decoding" != 'true'
+			then
+				decoding='true'
+				continue
+			fi
+			unset decoding
+		fi
+		if test "$decoding" = 'true'
+		then
+			hexcode="${hexcode:-}${char}"
+			if test ${#hexcode} -lt 2
+			then
+				continue
+			fi
+			char="$(from_hex "$hexcode")"
+			unset decoding hexcode
+		fi
+		printf '%s' "$char"
+	done
+	echo  # DEBUG
+}
+
+
+decode_stream ()
+{
+	while IFS= read -r line || { test -n "$line" && EOF='true'; }
+	do
+		decode_string "$line"
+		test "$EOF" = 'true' || printf '%%0a'
+	done
+}
+
+
+main ()
+{
+	trap 'test -t 1 && printf \\n' EXIT
+	if test $# -eq 0
+	then
+		decode_stream
+		return
+	fi
+	while test $# -gt 0
+	do
+		if test -f "$1"
+		then
+			decode_stream <"$1"
+		else
+			decode_string "$1"
+		fi
+		shift
+	done
+}
+
+
+decode_string "$@"

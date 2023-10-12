@@ -10,8 +10,8 @@ export LC_ALL
 
 to_hex ()
 {
-	set -- $(printf '%s' "$1" | od -t x1)
-	printf '%s' "$2"
+	set -- $(printf '%s' "$1" | od -An -tx1)
+	printf '%s' "$1"
 }
 
 
@@ -19,7 +19,7 @@ encode_string ()
 {
 	while test -n "$1"
 	do
-		char="$(printf '%.1s' "$1")"
+		char="${1%"${1#?}"}"
 		set -- "${1#"$char"}"
 		case $char in
 		[[:alnum:]._~-]) ;;
