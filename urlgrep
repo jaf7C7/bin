@@ -1,10 +1,1 @@
-#!/bin/sh
-#
-# `urlgrep` : Extract URL-like strings from text
-
-# POSIX ERE adapted from `urlview(1)`
-URL='(((http|https|ftp|gopher)|mailto):(\/\/)?[^<>"[:space:]]*|(www|ftp)[0-9]?\.[-a-z0-9.]+)[^.,;[:cntrl:][:space:]<">\):]?[^,<>"[:space:]]*[^.,;[:cntrl:][:space:]<">\):]'
-
-# Use awk as a POSIX alternative to 'sed -E' or 'grep -o' (GNU extensions)
-exec awk "/$URL/{print substr(\$0, match(\$0,/$URL/), RLENGTH)}" "$@"
-
+/home/jfox/projects/urltools/urlgrep
