@@ -3,13 +3,6 @@
 # `urldecode`: Percent-dencode a file or string according to RFC3986.
 
 
-##############
-# ascii:   a #
-# hex:    61 #
-# octal: 141 #
-##############
-
-
 LC_ALL=C
 export LC_ALL
 
@@ -44,7 +37,7 @@ decode_string ()
 		fi
 		if test "$decoding" = 'true'
 		then
-			hexcode="${hexcode:-}${char}"
+			hexcode="${hexcode}${char}"
 			if test ${#hexcode} -lt 2
 			then
 				continue
@@ -54,7 +47,6 @@ decode_string ()
 		fi
 		printf '%s' "$char"
 	done
-	echo  # DEBUG
 }
 
 
@@ -63,13 +55,14 @@ decode_stream ()
 	while IFS= read -r line || { test -n "$line" && EOF='true'; }
 	do
 		decode_string "$line"
-		test "$EOF" = 'true' || printf '%%0a'
+		test "$EOF" = 'true' || printf '%%0a'  # `%0a`: percent-encoded newline
 	done
 }
 
 
 main ()
 {
+	# Print a final newline for readability if output is to a terminal
 	trap 'test -t 1 && printf \\n' EXIT
 	if test $# -eq 0
 	then
@@ -89,4 +82,4 @@ main ()
 }
 
 
-decode_string "$@"
+main "$@"
