@@ -1,0 +1,13 @@
+#!/bin/sh
+#
+# `posix` : Dump a formatted POSIX 2018 man page for a given utility to stdout
+
+main ()
+{
+	url="https://pubs.opengroup.org/onlinepubs/9699919799/utilities/${*}.html"
+    prompt="POSIX manual page\: ${*} (Page %db/%D)"
+
+	exec lynx -with_backspaces -dump "$url" | less -P "$prompt"
+}
+
+main "$@"
