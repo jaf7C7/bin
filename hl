@@ -2,63 +2,78 @@
 #
 # `hl` : Highlight matching strings
 
+
+k='30'
+K='1;30'
+r='31'
+R='1;31'
+g='32'
+G='1;32'
+y='33'
+Y='1;33'
+b='34'
+B='1;34'
+m='35'
+M='1;35'
+c='36'
+C='1;36'
+w='37'
+W='1;37'
+clear=$(printf '\033[m')
+
+
 die() {
-	echo "hl: $*" >&2
-	exit 1
+    echo "hl: $*" >&2
+    exit 1
 }
+
 
 main() {
-	case "$1" in
-		-k) shift; color=30 ;;
-		-K) shift; color='1;30' ;;
-		-r) shift; color=31 ;;
-		-R) shift; color='1;31' ;;
-		-g) shift; color=32 ;;
-		-G) shift; color='1;32' ;;
-		-y) shift; color=33 ;;
-		-Y) shift; color='1;33' ;;
-		-b) shift; color=34 ;;
-		-B) shift; color='1;34' ;;
-		-m) shift; color=35 ;;
-		-M) shift; color='1;35' ;;
-		-c) shift; color=36 ;;
-		-C) shift; color='1;36' ;;
-		-w) shift; color=37 ;;
-		-W) shift; color='1;37' ;;
-		--python) shift; syntax='python' ;;
-		-*) die "unknown option: $1"
-	esac
+    while test $# -gt 0; do
+        case "$1" in
+            -[kKrRgGyYbBmMcCwW])
+                eval "color=\${${1#-}}"
+                color=$(printf '%b' "\033[${color}m")
+                shift
+                ;;
+            --python)
+                shift
+                syntax='python'
+                ;;
+            --)
+                shift
+                break
+                ;;
+            -*)
+                die "unknown option: $1"
+                ;;
+            *)
+                if ! test -f "$1"; then
+                    regex="$1"
+                    shift
+                fi
+                break
+        esac
+    done
 
-	color=$(printf '%b' "\033[${color:-1;31}m")
-	clear=$(printf '\033[m')
+    # The first file read defines the syntax for all files.
+    case "$1" in
+        *.py)
+            syntax='python'
+    esac
 
-	if test -f "$1"; then
-		infile="$1"
-		regex='.*'
-	elif test -f "$2"; then
-		infile="$2"
-		regex="$1"
-	fi
-
-	if test -n "$infile"; then
-		exec <"$infile"
-		case "$infile" in
-			*.py)
-				syntax='python'
-		esac
-	fi
-
-	case "$syntax" in
-		python)
-			sed -e 's/^\([[:space:]]*def \)\([^(]*\)/\1[1;32m\2[m/g' \
-			    -e 's/^\([[:space:]]*class \)\([^(]*\)/\1[1;31m\2[m/g' \
-			    -e '/^[^#]*$/s/['\''"][^'\''"]*['\''"]/[36m&[m/g' \
-			    -e 's/\([^\]\)\(#.*\)/\1[1;34m\2[m/g'
-			;;
-		*)
-			sed "s/${regex}/${color}&${clear}/"
-	esac
-
+    case "$syntax" in
+        python)
+            sed -e 's/^\([[:space:]]*def \)\([^(]*\)/\1[1;32m\2[m/g' \
+                -e 's/^\([[:space:]]*class \)\([^(]*\)/\1[1;31m\2[m/g' \
+                -e '/^[^#]*$/s/['\''"][^'\''"]*['\''"]/[36m&[m/g' \
+                -e 's/\([^\]\)\(#.*\)/\1[1;34m\2[m/g' \
+                "$@"
+            ;;
+        *)
+            sed "s/${regex:-.*}/${color}&${clear}/" "$@"
+    esac
 }
+
 
 main "$@"
